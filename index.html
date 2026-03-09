@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Таро – веб‑приложение</title>
+    <style>
+        /* === Стили === */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', Roboto, system-ui, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 16px;
+            color: #eaeaea;
+        }
+
+        .container {
+            max-width: 700px;
+            width: 100%;
+            background: rgba(10, 10, 25, 0.8);
+            backdrop-filter: blur(12px);
+            border-radius: 36px;
+            padding: 28px 22px;
+            box-shadow: 0 25px 50px -8px rgba(0,0,0,0.6), 0 0 0 1px rgba(218, 165, 32, 0.2);
+            border: 1px solid rgba(255, 215, 0, 0.25);
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            font-weight: 400;
+            text-align: center;
+            color: #ffd966;
+            margin-bottom: 12px;
+            letter-spacing: 2px;
+            text-shadow: 0 0 15px #b8860b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        h1 span {
+            font-size: 2rem;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #c0b9a0;
+            margin-bottom: 30px;
+            font-style: italic;
+            border-bottom: 1px dashed #ffd966;
+            padding-bottom: 15px;
+        }
+
+        /* Панель выбора расклада */
+        .spread-panel {
+            background: rgba(255,255,255,0.02);
+            border-radius: 48px;
+            padding: 20px 16px;
+            margin-bottom: 25px;
+            border: 1px solid rgba(255,215,0,0.3);
+        }
+
+        .label {
+            color: #ffd966;
+            font-weight: 500;
+            margin-bottom: 12px;
+            font-size: 1.1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .button-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 20px;
+            justify-content: center;
+        }
+
+        .btn {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid #ffd966;
+            color: #ffd966;
+            padding: 14px 24px;
+            border-radius: 60px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: 0.25s;
+            flex: 1 0 auto;
+            min-width: 130px;
+            backdrop-filter: blur(4px);
+        }
+
+        .btn:hover {
+            background: #ffd966;
+            color: #1a1a2e;
+            box-shadow: 0 0 20px #ffbf00;
+            transform: scale(1.02);
+        }
+
+        .btn.active {
+            background: #ffd966;
+            color: #1a1a2e;
+        }
+
+        /* Счётчик карт */
+        .counter {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 25px;
+            margin: 20px 0 10px;
+        }
+
+        .counter-btn {
+            background: transparent;
+            border: 2px solid #ffd966;
+            color: #ffd966;
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            font-size: 2rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .counter-btn:hover {
+            background: #ffd966;
+            color: #1a1a2e;
+        }
+
+        .counter-value {
+            font-size: 2.2rem;
+            font-weight: 700;
+            color: #ffd966;
+            min-width: 70px;
+            text-align: center;
+        }
+
+        /* Область карт */
+        .cards-area {
+            background: rgba(0,0,0,0.4);
+            border-radius: 48px;
+            padding: 30px 20px;
+            margin: 25px 0;
+            border: 2px dashed rgba(255,215,0,0.4);
+            min-height: 320px;
+        }
+
+        .cards-list {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .card-item {
+            background: rgba(255,215,0,0.08);
+            border-left: 8px solid #daa520;
+            padding: 18px 20px;
+            border-radius: 32px;
+            backdrop-filter: blur(4px);
+            transition: 0.3s;
+            box-shadow: 0 10px 20px -10px black;
+        }
+
+        .card-name {
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #ffd966;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-meaning {
+            font-size: 1rem;
+            color: #d4c4a8;
+            line-height: 1.5;
+            padding-left: 8px;
+        }
+
+        .loader {
+            text-align: center;
+            font-size: 2rem;
+            color: #ffd966;
+            animation: pulse 1.2s infinite;
+            padding: 40px 0;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; transform: scale(1); }
+            50% { opacity: 1; transform: scale(1.02); }
+            100% { opacity: 0.4; transform: scale(1); }
+        }
+
+        /* Блок подписки */
+        .subscription-block {
+            background: linear-gradient(145deg, #0f0f23, #1b1b35);
+            border-radius: 36px;
+            padding: 25px;
+            margin-top: 25px;
+            border: 1px solid #ffd966;
+        }
+
+        .subscription-block h2 {
+            color: #ffd966;
+            font-size: 1.8rem;
+            margin-bottom: 20px;
+            font-weight: 400;
+        }
+
+        .price-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 0;
+            border-bottom: 1px solid rgba(255,215,0,0.25);
+            font-size: 1.2rem;
+        }
+
+        .price-row .price {
+            color: #ffd966;
+            font-weight: 700;
+            font-size: 1.4rem;
+        }
+
+        .phone-box {
+            background: #00000030;
+            border-radius: 48px;
+            padding: 18px;
+            margin: 20px 0 10px;
+            text-align: center;
+            border: 1px solid #daa520;
+            font-size: 1.5rem;
+            letter-spacing: 2px;
+            color: #ffd966;
+        }
+
+        .footer-note {
+            font-size: 0.9rem;
+            color: #9e9e9e;
+            text-align: center;
+        }
+
+        .close-btn {
+            width: 100%;
+            background: transparent;
+            border: 2px solid #ffd966;
+            color: #ffd966;
+            padding: 16px;
+            border-radius: 60px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 25px;
+            cursor: pointer;
+            transition: 0.25s;
+        }
+
+        .close-btn:hover {
+            background: #ffd966;
+            color: #1a1a2e;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>
+            <span>🔮</span> ТАРО <span>🔮</span>
+        </h1>
+        <div class="subtitle">расклады по вашему запросу</div>
+
+        <!-- Панель выбора типа расклада -->
+        <div class="spread-panel">
+            <div class="label">✨ выберите тему расклада:</div>
+            <div class="button-group" id="spreadTypeGroup">
+                <button class="btn active" data-spread="relationship">💞 Отношения</button>
+                <button class="btn" data-spread="work">💼 Работа</button>
+                <button class="btn" data-spread="general">🌈 Общий</button>
+            </div>
+
+            <!-- Выбор количества карт -->
+            <div class="label">📊 количество карт:</div>
+            <div class="counter">
+                <button class="counter-btn" id="decCard">−</button>
+                <span class="counter-value" id="cardCount">3</span>
+                <button class="counter-btn" id="incCard">+</button>
+            </div>
+        </div>
+
+        <!-- Область вывода карт -->
+        <div class="cards-area" id="cardsArea">
+            <div class="cards-list" id="cardsList">
+                <div style="text-align:center; color:#b0a090; padding:30px;">👆 нажмите на кнопку расклада</div>
+            </div>
+        </div>
+
+        <!-- Блок подписки (по заданию) -->
+        <div class="subscription-block">
+            <h2>💎 ПОДПИСКА</h2>
+            <div class="price-row">
+                <span>1 месяц</span>
+                <span class="price">120 ₽</span>
+            </div>
+            <div class="price-row">
+                <span>6 месяцев</span>
+                <span class="price">450 ₽</span>
+            </div>
+            <div class="price-row">
+                <span>12 месяцев</span>
+                <span class="price">600 ₽</span>
+            </div>
+            <div class="phone-box">
+                📞 +7 (953) 010-90-90
+            </div>
+            <div class="footer-note">
+                Переведите нужную сумму на этот номер и отправьте скриншот в бота.
+            </div>
+        </div>
+
+        <!-- Кнопка закрытия веб‑приложения (возврат в Telegram) -->
+        <button class="close-btn" id="closeWebApp">🔙 ЗАКРЫТЬ</button>
+    </div>
+
+    <!-- Подключаем Telegram Web App SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <script>
+        // ==================== Telegram Web App ====================
+        const tg = window.Telegram.WebApp;
+        tg.expand();            // развернуть на весь экран
+        tg.MainButton.hide();   // скрыть основную кнопку
+
+        // ==================== ПОЛНАЯ БАЗА КАРТ ТАРО (78 карт) ====================
+        const CARDS = [
+            // Старшие арканы (22)
+            { name: "0 – Шут", meaning: "Новое начало, спонтанность, вера в лучшее, беззаботность." },
+            { name: "I – Маг", meaning: "Сила воли, мастерство, концентрация, созидание, уверенность." },
+            { name: "II – Верховная Жрица", meaning: "Интуиция, тайна, скрытые знания, подсознание." },
+            { name: "III – Императрица", meaning: "Изобилие, плодородие, творчество, забота, природа." },
+            { name: "IV – Император", meaning: "Власть, структура, авторитет, стабильность, порядок." },
+            { name: "V – Иерофант", meaning: "Традиции, духовное руководство, обучение, вера." },
+            { name: "VI – Влюблённые", meaning: "Выбор, отношения, гармония, любовь, испытание." },
+            { name: "VII – Колесница", meaning: "Воля, победа, контроль, целеустремлённость." },
+            { name: "VIII – Сила", meaning: "Мужество, внутренняя сила, сострадание, терпение." },
+            { name: "IX – Отшельник", meaning: "Мудрость, уединение, поиск истины, самоанализ." },
+            { name: "X – Колесо Фортуны", meaning: "Судьба, перемены, циклы, удача, поворот." },
+            { name: "XI – Справедливость", meaning: "Правда, баланс, закон, честность, карма." },
+            { name: "XII – Повешенный", meaning: "Жертва, новый взгляд, ожидание, остановка." },
+            { name: "XIII – Смерть", meaning: "Трансформация, конец и начало, освобождение." },
+            { name: "XIV – Умеренность", meaning: "Баланс, гармония, терпение, умеренность." },
+            { name: "XV – Дьявол", meaning: "Привязанность, зависимость, материализм, искушение." },
+            { name: "XVI – Башня", meaning: "Разрушение, потрясение, внезапные перемены." },
+            { name: "XVII – Звезда", meaning: "Надежда, вдохновение, исцеление, вера." },
+            { name: "XVIII – Луна", meaning: "Иллюзии, подсознание, страхи, интуиция." },
+            { name: "XIX – Солнце", meaning: "Радость, успех, ясность, энергия, тепло." },
+            { name: "XX – Суд", meaning: "Возрождение, прощение, пробуждение, призвание." },
+            { name: "XXI – Мир", meaning: "Завершение, интеграция, успех, путешествия." },
+
+            // Жезлы (14)
+            { name: "Туз Жезлов", meaning: "Начало, энергия, вдохновение, творческий импульс." },
+            { name: "2 Жезлов", meaning: "Планирование, дальние перспективы, выбор." },
+            { name: "3 Жезлов", meaning: "Ожидание, расширение, сотрудничество." },
+            { name: "4 Жезлов", meaning: "Праздник, стабильность, дом, гармония." },
+            { name: "5 Жезлов", meaning: "Соперничество, конфликт, борьба за место." },
+            { name: "6 Жезлов", meaning: "Победа, признание, успех, лидерство." },
+            { name: "7 Жезлов", meaning: "Защита, отстаивание позиций, вызов." },
+            { name: "8 Жезлов", meaning: "Скорость, новости, движение вперёд." },
+            { name: "9 Жезлов", meaning: "Упорство, защита, границы, готовность." },
+            { name: "10 Жезлов", meaning: "Бремя, перегрузка, ответственность." },
+            { name: "Паж Жезлов", meaning: "Энтузиазм, новости, исследование." },
+            { name: "Рыцарь Жезлов", meaning: "Действие, страсть, путешествие, импульсивность." },
+            { name: "Королева Жезлов", meaning: "Уверенность, тепло, независимость, обаяние." },
+            { name: "Король Жезлов", meaning: "Лидерство, видение, авторитет, предприимчивость." },
+
+            // Кубки (14)
+            { name: "Туз Кубков", meaning: "Любовь, эмоции, открытость, новые чувства." },
+            { name: "2 Кубков", meaning: "Союз, партнёрство, взаимность." },
+            { name: "3 Кубков", meaning: "Дружба, праздник, веселье, поддержка." },
+            { name: "4 Кубков", meaning: "Апатия, скука, новые предложения." },
+            { name: "5 Кубков", meaning: "Потеря, разочарование, сосредоточенность на негативе." },
+            { name: "6 Кубков", meaning: "Ностальгия, воспоминания, щедрость." },
+            { name: "7 Кубков", meaning: "Иллюзии, выбор, мечты, фантазии." },
+            { name: "8 Кубков", meaning: "Уход, поиск смысла, оставление прошлого." },
+            { name: "9 Кубков", meaning: "Исполнение желаний, удовлетворение, комфорт." },
+            { name: "10 Кубков", meaning: "Семейное счастье, гармония, радость." },
+            { name: "Паж Кубков", meaning: "Романтика, творчество, интуиция." },
+            { name: "Рыцарь Кубков", meaning: "Предложение, романтика, чувствительность." },
+            { name: "Королева Кубков", meaning: "Эмоциональность, забота, интуиция." },
+            { name: "Король Кубков", meaning: "Контроль эмоций, дипломатия, мудрость." },
+
+            // Мечи (14)
+            { name: "Туз Мечей", meaning: "Истина, прорыв, ясность, правда." },
+            { name: "2 Мечей", meaning: "Выбор, тупик, нерешительность, компромисс." },
+            { name: "3 Мечей", meaning: "Разочарование, боль, разрыв." },
+            { name: "4 Мечей", meaning: "Отдых, пауза, восстановление, покой." },
+            { name: "5 Мечей", meaning: "Конфликт, поражение, горечь победы." },
+            { name: "6 Мечей", meaning: "Переход, переезд, движение к лучшему." },
+            { name: "7 Мечей", meaning: "Хитрость, обман, стратегия, бегство." },
+            { name: "8 Мечей", meaning: "Ограничения, страх, бессилие." },
+            { name: "9 Мечей", meaning: "Тревога, кошмары, угрызения совести." },
+            { name: "10 Мечей", meaning: "Конец, крах, завершение мучений." },
+            { name: "Паж Мечей", meaning: "Любопытство, бдительность, новые идеи." },
+            { name: "Рыцарь Мечей", meaning: "Агрессия, стремительность, прямота." },
+            { name: "Королева Мечей", meaning: "Независимость, острота ума, честность." },
+            { name: "Король Мечей", meaning: "Интеллект, логика, авторитет, закон." },
+
+            // Пентакли (14)
+            { name: "Туз Пентаклей", meaning: "Деньги, возможности, процветание." },
+            { name: "2 Пентаклей", meaning: "Баланс, многозадачность, адаптация." },
+            { name: "3 Пентаклей", meaning: "Команда, мастерство, сотрудничество." },
+            { name: "4 Пентаклей", meaning: "Накопление, жадность, стабильность." },
+            { name: "5 Пентаклей", meaning: "Трудности, бедность, изоляция." },
+            { name: "6 Пентаклей", meaning: "Щедрость, помощь, баланс давать/брать." },
+            { name: "7 Пентаклей", meaning: "Ожидание, инвестиции, терпение." },
+            { name: "8 Пентаклей", meaning: "Труд, мастерство, усердие." },
+            { name: "9 Пентаклей", meaning: "Роскошь, самодостаточность, комфорт." },
+            { name: "10 Пентаклей", meaning: "Наследие, семья, богатство, род." },
+            { name: "Паж Пентаклей", meaning: "Учёба, новые возможности, практичность." },
+            { name: "Рыцарь Пентаклей", meaning: "Трудолюбие, надёжность, рутина." },
+            { name: "Королева Пентаклей", meaning: "Изобилие, забота, практичность." },
+            { name: "Король Пентаклей", meaning: "Богатство, власть, стабильность, успех." }
+        ];
+
+        // Тематические значения для разных раскладов (дополнение к основному значению)
+        const SPREAD_EXTRA = {
+            relationship: " в контексте отношений: партнёрство, чувства, гармония.",
+            work: " в контексте работы: карьера, задачи, коллектив.",
+            general: ""
+        };
+
+        // ==================== ЭЛЕМЕНТЫ УПРАВЛЕНИЯ ====================
+        const spreadButtons = document.querySelectorAll('[data-spread]');
+        const cardsListDiv = document.getElementById('cardsList');
+        const cardCountSpan = document.getElementById('cardCount');
+        const incBtn = document.getElementById('incCard');
+        const decBtn = document.getElementById('decCard');
+        const closeBtn = document.getElementById('closeWebApp');
+
+        let currentSpread = 'relationship';   // выбранная тема
+        let cardCount = 3;                    // количество карт
+
+        // Активная кнопка темы
+        spreadButtons.forEach(btn => {
+            btn.addEventListener('click', () => {
+                spreadButtons.forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                currentSpread = btn.dataset.spread;
+            });
+        });
+
+        // Увеличение/уменьшение количества карт (от 1 до 5)
+        incBtn.addEventListener('click', () => {
+            if (cardCount < 5) {
+                cardCount++;
+                cardCountSpan.textContent = cardCount;
+            }
+        });
+
+        decBtn.addEventListener('click', () => {
+            if (cardCount > 1) {
+                cardCount--;
+                cardCountSpan.textContent = cardCount;
+            }
+        });
+
+        // Функция тасовки и отображения карт
+        function drawAndShow() {
+            // Показываем анимацию загрузки
+            cardsListDiv.innerHTML = '<div class="loader">🔮 тасуем колоду ...</div>';
+
+            setTimeout(() => {
+                // Перемешиваем массив и берём нужное количество
+                const shuffled = [...CARDS].sort(() => Math.random() - 0.5);
+                const selected = shuffled.slice(0, cardCount);
+
+                let html = '';
+                selected.forEach((card, idx) => {
+                    const extra = SPREAD_EXTRA[currentSpread] || '';
+                    html += `
+                        <div class="card-item">
+                            <div class="card-name">🔹 ${card.name}</div>
+                            <div class="card-meaning">${card.meaning}${extra}</div>
+                        </div>
+                    `;
+                });
+
+                cardsListDiv.innerHTML = html;
+
+                // Отправляем данные в Telegram (можно использовать для аналитики)
+                tg.sendData(JSON.stringify({
+                    action: 'spread',
+                    type: currentSpread,
+                    count: cardCount,
+                    cards: selected.map(c => c.name)
+                }));
+            }, 700); // имитация тасовки
+        }
+
+        // Вешаем обработчик на все кнопки раскладов (при клике на любую тему)
+        spreadButtons.forEach(btn => {
+            btn.addEventListener('click', drawAndShow);
+        });
+
+        // Кнопка закрытия веб-приложения
+        closeBtn.addEventListener('click', () => {
+            tg.close();
+        });
+
+        // Автоматически показывать расклад при старте (необязательно)
+        window.addEventListener('load', () => {
+            // можно ничего не показывать, или показать приветствие
+        });
+    </script>
+</body>
+</html>
